@@ -9,6 +9,8 @@ Features:
 - Charts for analog pins.
 - New and easy user interface.
 - Remember last status of the pins.
+- Auto connect feature.
+- live feedback for all pins.
 - Change the mode of the pin (Output, PWM or Input).
 - Automatic connect to Arduino.
 - Rename the label of each pin.
