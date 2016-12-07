@@ -21,8 +21,8 @@ Applications:
 - Remote control.
 
 Requirements:
-- Arduino YUN
-     or 
+- Arduino YUN \n
+     or \n
 - YUN shield with any of arduino boards(Uno, Leonardo or Mega)
 
 Check this youtube to see in real world:	
