@@ -12,15 +12,33 @@
 #include <Process.h>
 #include <Servo.h>
 
+#define lcd_size 3 //this will define number of LCD on the phone app
+int refresh_time = 15; //the data will be updated on the app every 5 seconds.
+
 BridgeServer server;
+Servo myServo[53];
+
 char mode_action[54];
 int mode_val[54];
+String mode_feedback;
+String lcd[lcd_size];
 String api, channel, notification, user_id;
-Servo myServo[53];
+
 unsigned long last = millis();
+
 void setup() {
   // Bridge startup
   Bridge.begin();
+  //    while (!Serial) {
+  //      ; // wait for serial port to connect. Needed for native USB port only
+  //    }
+  boardInit();
+  server.listenOnLocalhost();
+  server.begin();
+  print_wifiStatus();
+}
+
+void boardInit() {
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
   for (byte i = 0; i <= 53; i++) {
     if (i == 0 || i == 1 ) {
@@ -49,8 +67,23 @@ void setup() {
     }
   }
 #endif
-  server.listenOnLocalhost();
-  server.begin();
+
+}
+
+
+void print_wifiStatus() {
+  Process wifiCheck;  // initialize a new process
+
+  wifiCheck.runShellCommand("/usr/bin/pretty-wifi-info.lua");  // command you want to run
+
+  // while there's any characters coming back from the
+  // process, print them to the serial monitor:
+  while (wifiCheck.available() > 0) {
+    char c = wifiCheck.read();
+    SerialUSB.print(c);
+  }
+
+  SerialUSB.println();
 }
 
 void update_input() {
@@ -68,6 +101,10 @@ void update_input() {
 }
 
 void loop() {
+  lcd[0] = "Test 1 LCD";// you can send any data to your mobile phone.
+  lcd[1] = "Test 2 LCD";// you can send any data to your mobile phone.
+  lcd[2] = analogRead(1);//  send analog value of A1
+
   BridgeClient client = server.accept();
   if (client) {
     process(client);
@@ -98,6 +135,10 @@ void postData(int pin)
 void process(BridgeClient client) {
   String command = client.readStringUntil('/');
 
+  if (command == "terminal") {
+    terminalCommand(client);
+  }
+
   if (command == "digital") {
     digitalCommand(client);
   }
@@ -118,16 +159,30 @@ void process(BridgeClient client) {
     allonoff(client);
   }
 
-  if (command == "allstatus") {
-    allstatus(client);
-  }
-
   if (command == "onesignal") {
     onesignal(client);
   }
 
+  if (command == "refresh") {
+    refresh(client);
+  }
+
+  if (command == "allstatus") {
+    allstatus(client);
+  }
 }
 
+void terminalCommand(BridgeClient client) {//Here you recieve data form app terminal
+  String data = client.readStringUntil('\r');
+  Serial.println(data);
+}
+
+void refresh(BridgeClient client) {
+  int value;
+  value = client.parseInt();
+  refresh_time = value;
+
+}
 
 void onesignal(BridgeClient client) {
   user_id = client.readStringUntil('/');
@@ -251,7 +306,7 @@ void allstatus(BridgeClient client) {
   client.println(F("content-type:application/json"));
   client.println();
   client.println(F("{"));
-  client.print(F("\"mode\":["));
+  client.print(F("\"m\":["));
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
   for (byte i = 0; i <= 53; i++) {
     client.print(F("\""));
@@ -270,7 +325,7 @@ void allstatus(BridgeClient client) {
 #endif
   client.println(F("],"));
 
-  client.print(F("\"mode_val\":["));
+  client.print(F("\"v\":["));
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
   for (byte i = 0; i <= 53; i++) {
     client.print(mode_val[i]);
@@ -285,7 +340,7 @@ void allstatus(BridgeClient client) {
 #endif
   client.println(F("],"));
 
-  client.print(F("\"analog\":["));
+  client.print(F("\"a\":["));
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
   for (byte i = 0; i <= 15; i++) {
     client.print(analogRead(i));
@@ -301,17 +356,20 @@ void allstatus(BridgeClient client) {
 #endif
   client.println("],");
 
-  client.print(F("\"boardtype\":\""));
-#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)//Mega
-  client.println(F("kit_mega\","));
-#endif
-#if defined(__AVR_ATmega32U4__)//Leo
-  client.println(F("kit_leo\","));
-#endif
-#if defined(__AVR_ATmega328P__) || defined(__AVR_ATmega168__) || defined(__AVR_ATmega16U4__)//UNO
-  client.println(F("kit_uno\","));
-#endif
-  client.println(F("\"boardname\":\"yun\","));
-  client.println(F("\"boardstatus\":1"));
-  client.println(F("}"));
+  client.print("\"l\":[");// for lcd
+  for (byte i = 0; i <= lcd_size - 1; i++) {
+    client.print("\"");
+    client.print(lcd[i]);
+    client.print("\"");
+    if (i != lcd_size - 1)client.print(",");
+  }
+  client.println("],");
+
+  client.print("\"f\":\"");// for feedback.
+  client.print(mode_feedback);
+  client.println("\",");
+  client.print("\"t\":\"");//t for time.
+  client.print(refresh_time);
+  client.println("\"");
+  client.println("}");
 }
