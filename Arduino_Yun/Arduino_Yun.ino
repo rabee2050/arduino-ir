@@ -20,7 +20,7 @@
 #include <Servo.h>
 
 #define lcd_size 3 //this will define number of LCD on the phone app
-int refresh_time = 15; //the data will be updated on the app every 5 seconds.
+int refresh_time = 15; //the data will be updated on the app every 15 seconds.
 
 BridgeServer server;
 Servo myServo[53];
