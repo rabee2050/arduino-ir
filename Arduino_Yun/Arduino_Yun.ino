@@ -1,8 +1,15 @@
 /*
   Done by TATCO.
+  
   Contact us:
   info@tatco.cc
-  tatco.cc
+
+  Release Notes:
+  - Created 10 Oct 2015
+  - V2 Updated 01 Jan 2016
+  - V3 Updated 15 Apr 2016
+  - V4 Updated 06 Oct 2017
+  
 */
 //#include <Pushetta.h>
 #include <EEPROM.h>
@@ -22,82 +29,15 @@ char mode_action[54];
 int mode_val[54];
 String mode_feedback;
 String lcd[lcd_size];
-String api, channel, notification, user_id;
 
 unsigned long last = millis();
+unsigned long last_ip = millis();
 
 void setup() {
-  // Bridge startup
   Bridge.begin();
-  //    while (!Serial) {
-  //      ; // wait for serial port to connect. Needed for native USB port only
-  //    }
   boardInit();
   server.listenOnLocalhost();
   server.begin();
-  print_wifiStatus();
-}
-
-void boardInit() {
-#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
-  for (byte i = 0; i <= 53; i++) {
-    if (i == 0 || i == 1 ) {
-      mode_action[i] = 'x';
-      mode_val[i] = 'x';
-    }
-    else {
-      mode_action[i] = 'o';
-      mode_val[i] = 0;
-      pinMode(i, OUTPUT);
-    }
-  }
-
-#endif
-
-#if defined(__AVR_ATmega328P__) || defined(__AVR_ATmega168__) || defined(__AVR_ATmega32U4__) || defined(__AVR_ATmega16U4__)
-  for (byte i = 0; i <= 13; i++) {
-    if (i == 0 || i == 1  ) {
-      mode_action[i] = 'x';
-      mode_val[i] = 'x';
-    }
-    else {
-      mode_action[i] = 'o';
-      mode_val[i] = 0;
-      pinMode(i, OUTPUT);
-    }
-  }
-#endif
-
-}
-
-
-void print_wifiStatus() {
-  Process wifiCheck;  // initialize a new process
-
-  wifiCheck.runShellCommand("/usr/bin/pretty-wifi-info.lua");  // command you want to run
-
-  // while there's any characters coming back from the
-  // process, print them to the serial monitor:
-  while (wifiCheck.available() > 0) {
-    char c = wifiCheck.read();
-    SerialUSB.print(c);
-  }
-
-  SerialUSB.println();
-}
-
-void update_input() {
-  for (byte i = 0; i < sizeof(mode_action); i++) {
-    if (mode_action[i] == 'i') {
-      mode_val[i] = digitalRead(i);
-      if (mode_val[i] == 1) {
-        if (millis() - last > 10000) {
-          postData(i);
-        }
-        last = millis();
-      }
-    }
-  }
 }
 
 void loop() {
@@ -112,24 +52,7 @@ void loop() {
   }
   delay(50);
   update_input();
-
-}
-
-void postData(int pin)
-{
-  if (user_id != "") {
-
-    Process phant;
-    String curlCmd = "";
-    curlCmd += "curl -k -H \"Content-Type: application/json\" -X POST -d '{\"app_id\":\"e4dbbeda-11d3-4655-aaa3-9d5d32634797\",\"include_player_ids\":[\"";
-    curlCmd += user_id;
-    curlCmd += "\"],\"contents\":{\"en\":\"";
-    curlCmd += "Alarm at pin # " + String(pin);
-    curlCmd += "\"}}' https://onesignal.com/api/v1/notifications";
-
-    phant.runShellCommand(curlCmd); // Send command through Shell
-  }
-
+  print_wifiStatus();
 }
 
 void process(BridgeClient client) {
@@ -159,10 +82,6 @@ void process(BridgeClient client) {
     allonoff(client);
   }
 
-  if (command == "onesignal") {
-    onesignal(client);
-  }
-
   if (command == "refresh") {
     refresh(client);
   }
@@ -175,27 +94,6 @@ void process(BridgeClient client) {
 void terminalCommand(BridgeClient client) {//Here you recieve data form app terminal
   String data = client.readStringUntil('\r');
   Serial.println(data);
-}
-
-void refresh(BridgeClient client) {
-  int value;
-  value = client.parseInt();
-  refresh_time = value;
-
-}
-
-void onesignal(BridgeClient client) {
-  user_id = client.readStringUntil('/');
-
-  int action_p = client.parseInt();
-  if (action_p == 1) {
-    client.println(F("Saved"));
-  } else {
-    client.println(F("Deleted"));
-    user_id = "";
-
-  }
-
 }
 
 void digitalCommand(BridgeClient client) {
@@ -299,14 +197,19 @@ void allonoff(BridgeClient client) {
 
 }
 
+void refresh(BridgeClient client) {
+  int value;
+  value = client.parseInt();
+  refresh_time = value;
 
+}
 
 void allstatus(BridgeClient client) {
   client.println(F("Status:200"));
   client.println(F("content-type:application/json"));
   client.println();
   client.println(F("{"));
-  client.print(F("\"m\":["));
+  client.print(F("\"m\":["));//m for Pin Mode
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
   for (byte i = 0; i <= 53; i++) {
     client.print(F("\""));
@@ -325,7 +228,7 @@ void allstatus(BridgeClient client) {
 #endif
   client.println(F("],"));
 
-  client.print(F("\"v\":["));
+  client.print(F("\"v\":["));// v for Mode value
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
   for (byte i = 0; i <= 53; i++) {
     client.print(mode_val[i]);
@@ -340,7 +243,7 @@ void allstatus(BridgeClient client) {
 #endif
   client.println(F("],"));
 
-  client.print(F("\"a\":["));
+  client.print(F("\"a\":["));// a For Analog
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
   for (byte i = 0; i <= 15; i++) {
     client.print(analogRead(i));
@@ -356,7 +259,7 @@ void allstatus(BridgeClient client) {
 #endif
   client.println("],");
 
-  client.print("\"l\":[");// for lcd
+  client.print("\"l\":[");// // l for LCD
   for (byte i = 0; i <= lcd_size - 1; i++) {
     client.print("\"");
     client.print(lcd[i]);
@@ -365,11 +268,66 @@ void allstatus(BridgeClient client) {
   }
   client.println("],");
 
-  client.print("\"f\":\"");// for feedback.
+  client.print("\"f\":\"");// f for Feedback.
   client.print(mode_feedback);
   client.println("\",");
-  client.print("\"t\":\"");//t for time.
+  client.print("\"t\":\"");//t for refresh Time .
   client.print(refresh_time);
   client.println("\"");
   client.println("}");
+}
+
+void boardInit() {
+#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+  for (byte i = 0; i <= 53; i++) {
+    if (i == 0 || i == 1 ) {
+      mode_action[i] = 'x';
+      mode_val[i] = 'x';
+    }
+    else {
+      mode_action[i] = 'o';
+      mode_val[i] = 0;
+      pinMode(i, OUTPUT);
+    }
+  }
+
+#endif
+
+#if defined(__AVR_ATmega328P__) || defined(__AVR_ATmega168__) || defined(__AVR_ATmega32U4__) || defined(__AVR_ATmega16U4__)
+  for (byte i = 0; i <= 13; i++) {
+    if (i == 0 || i == 1  ) {
+      mode_action[i] = 'x';
+      mode_val[i] = 'x';
+    }
+    else {
+      mode_action[i] = 'o';
+      mode_val[i] = 0;
+      pinMode(i, OUTPUT);
+    }
+  }
+#endif
+
+}
+
+void print_wifiStatus() {
+  if (Serial) {
+    if (millis() - last_ip > 2000) {
+      Process wifiCheck;
+      wifiCheck.runShellCommand("/usr/bin/pretty-wifi-info.lua");
+      while (wifiCheck.available() > 0) {
+        char c = wifiCheck.read();
+        SerialUSB.print(c);
+      }
+      SerialUSB.println();
+    }
+    last_ip = millis();
+  }
+}
+
+void update_input() {
+  for (byte i = 0; i < sizeof(mode_action); i++) {
+    if (mode_action[i] == 'i') {
+      mode_val[i] = digitalRead(i);
+    }
+  }
 }
