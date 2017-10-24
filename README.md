@@ -1,7 +1,7 @@
 # Arduino-Yun-Kit
 This sketch work with the app on both iOS and Android : "Arduino Yun Kit"
-iOS: https://itunes.apple.com/us/app/arduino-yun-kit/id1079396851?mt=8
-Android: https://play.google.com/store/apps/details?id=com.arduino.yunkit
+- iOS: https://itunes.apple.com/us/app/arduino-yun-kit/id1079396851?mt=8
+- Android: https://play.google.com/store/apps/details?id=com.arduino.yunkit
 
 Features:
 - Read & write digital pins
