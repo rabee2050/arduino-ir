@@ -1,5 +1,5 @@
 # Arduino-MKR1000
-This sketch work with the app on both iOS and Android : "Arduino MKR1000"
+This sketch work with both apps on iOS and Android : "Arduino MKR1000"
 - iOS: 
 - Android: 
 
