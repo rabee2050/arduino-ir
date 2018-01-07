@@ -1,37 +1,30 @@
 /*
-  Done By TATCO Inc.
-
-  Contact:
-  info@tatco.cc
+  Title  : Arduino MKR1000
+  version: V1.
+  Contact: info@tatco.cc
+  Done By: TATCO Inc.
+  github : https://github.com/rabee2050/arduino-mkr1000
+  ios    :
+  Android:
 
   Release Notes:
-  - Created 1 Jan 2018
-
-  Note:
-  1- This sketch compatable with Eathernet shield and Wiznet W5100
-  2- Tested with Mega, Uno, Leo
-  3- Uno & Leo pins# 10, 11, 12, 13 used for ethernet shield
-  4- Mega Pins# 10, 50, 51, 52, 53 used for ethernet shield
-  5- EthernetBonjour not completely tested, stability issues have to be considered.
+  - V1 Created 1 Jan 2018
 
 */
 
 #include <SPI.h>
 #include <WiFi101.h>
 #include <Servo.h>
+
 //#include <WiFiMDNSResponder.h>
+//WiFiMDNSResponder mdnsResponder;
+//char mdnsName[] = "rabee";
 
-
-
-
-char ssid[] = "NSF5";        // your network SSID (name)
-char pass[] = "shebaak264";    // your network password (use for WPA, or use as key for WEP)
+char ssid[] = "Mi rabee";        // your network SSID (name)
+char pass[] = "1231231234";    // your network password (use for WPA, or use as key for WEP)
 
 int status = WL_IDLE_STATUS;
-//WiFiMDNSResponder mdnsResponder;
 WiFiServer server(80);
-
-char mdnsName[] = "rabee";
 
 #define lcd_size 3 //this will define number of LCD on the phone app
 int refresh_time = 15; //the data will be updated on the app every 5 seconds.
@@ -40,19 +33,11 @@ int mode_val[54];
 Servo myServo[53];
 String mode_feedback;
 String lcd[lcd_size];
-
-
-String httpOk = "HTTP/1.1 200 OK\r\n Content-Type: text/plain \r\n\r\n";
+unsigned long last_ip = millis();
 
 void setup(void)
 {
   Serial.begin(9600);      // initialize serial communication
-
-  //   check for the presence of the shield:
-  if (WiFi.status() == WL_NO_SHIELD) {
-    Serial.println("WiFi shield not present");
-    while (true);       // don't continue
-  }
 
   // attempt to connect to WiFi network:
   while ( status != WL_CONNECTED) {
@@ -67,17 +52,15 @@ void setup(void)
 
   server.begin();                           // start the web server on port 80
   printWiFiStatus();                        // you're connected now, so print out the status
-
+  boardInit();                              // Init the board
+  
   //  if (!mdnsResponder.begin(mdnsName)) {
   //    Serial.println("Failed to start MDNS responder!");
   //    while(1);
   //  }
-  //
   //  Serial.print("Server listening at http://");
   //  Serial.print(mdnsName);
   //  Serial.println(".local/");
-
-  boardInit();
 }
 
 void loop(void)
@@ -89,13 +72,17 @@ void loop(void)
   lcd[2] = analogRead(1);//  send analog value of A1
 
   WiFiClient client = server.available();
-  if (client) {
-    if (client.connected()) {
-      process( client);
-      client.stop();
+
+  if (client) {                             // if you get a client,
+    while (client.connected()) {            // loop while the client's connected
+      if (client.available()) {             // if there's bytes to read from the client,
+        process( client);
+        break;
+      }
     }
   }
   update_input();
+  printWifiSerial();
 }
 
 void process(WiFiClient client) {
@@ -142,8 +129,10 @@ void process(WiFiClient client) {
 void terminalCommand(WiFiClient client) {//Here you recieve data form app terminal
   String data = client.readStringUntil('/');
   Serial.println(data);
-  client.print(httpOk);
-  client.stop();
+  client.println("HTTP/1.1 200 OK");
+  client.println("Content-type:text/html");
+  client.println();
+  delay(1); client.stop();
 
 }
 
@@ -151,9 +140,12 @@ void refresh(WiFiClient client) {
   int value;
   value = client.parseInt();
   refresh_time = value;
-  client.print(httpOk);
+  client.println("HTTP/1.1 200 OK");
+  client.println("Content-type:text/html");
+  client.println();
   client.print(value);
-  client.stop();
+  client.println();
+  delay(1); client.stop();
 }
 
 void digitalCommand(WiFiClient client) {
@@ -163,9 +155,12 @@ void digitalCommand(WiFiClient client) {
     value = client.parseInt();
     digitalWrite(pin, value);
     mode_val[pin] = value;
-    client.print(httpOk);
-    client.println(value);
-    client.stop();
+    client.println("HTTP/1.1 200 OK");
+    client.println("Content-type:text/html");
+    client.println();
+    client.print(value);
+    client.println();
+    delay(1); client.stop();
   }
 }
 
@@ -176,9 +171,12 @@ void analogCommand(WiFiClient client) {
     value = client.parseInt();
     analogWrite(pin, value);
     mode_val[pin] = value;
-    client.print(httpOk);
+    client.println("HTTP/1.1 200 OK");
+    client.println("Content-type:text/html");
+    client.println();
     client.print(value);
-    client.stop();
+    client.println();
+    delay(1); client.stop();
   }
 }
 
@@ -189,9 +187,12 @@ void servo(WiFiClient client) {
     value = client.parseInt();
     myServo[pin].write(value);
     mode_val[pin] = value;
-    client.print(httpOk);
+    client.println("HTTP/1.1 200 OK");
+    client.println("Content-type:text/html");
+    client.println();
     client.print(value);
-    client.stop();
+    client.println();
+    delay(1); client.stop();
   }
 }
 
@@ -199,7 +200,9 @@ void modeCommand(WiFiClient client) {
   int pin = client.parseInt();
   String mode = client.readStringUntil(' ');
   myServo[pin].detach();
-  client.print(httpOk);
+  client.println("HTTP/1.1 200 OK");
+  client.println("Content-type:text/html");
+  client.println();
 
   if (mode == "/input") {
     pinMode(pin, INPUT);
@@ -209,7 +212,8 @@ void modeCommand(WiFiClient client) {
     client.print(F("D"));
     client.print(pin);
     client.print(F(" set as INPUT!"));
-    client.stop();
+    client.println();
+    delay(1); client.stop();
   }
 
   if (mode == "/output") {
@@ -220,7 +224,8 @@ void modeCommand(WiFiClient client) {
     client.print(F("D"));
     client.print(pin);
     client.print(F(" set as OUTPUT!"));
-    client.stop();
+    client.println();
+    delay(1); client.stop();
   }
 
   if (mode == "/pwm") {
@@ -231,7 +236,8 @@ void modeCommand(WiFiClient client) {
     client.print(F("D"));
     client.print(pin);
     client.print(F(" set as PWM!"));
-    client.stop();
+    client.println();
+    delay(1); client.stop();
   }
 
   if (mode == "/servo") {
@@ -242,7 +248,8 @@ void modeCommand(WiFiClient client) {
     client.print(F("D"));
     client.print(pin);
     client.print(F(" set as SERVO!"));
-    client.stop();
+    client.println();
+    delay(1); client.stop();
   }
 }
 
@@ -254,9 +261,12 @@ void allonoff(WiFiClient client) {
       mode_val[i] = value;
     }
   }
-  client.print(httpOk);
+  client.println("HTTP/1.1 200 OK");
+  client.println("Content-type:text/html");
+  client.println();
   client.print(value);
-  client.stop();
+  client.println();
+  delay(1); client.stop();
 }
 
 void allstatus(WiFiClient client) {
@@ -307,7 +317,7 @@ void allstatus(WiFiClient client) {
   client.print(refresh_time);
   client.println("\"");
   client.println(F("}"));
-  client.stop();
+  delay(1); client.stop();
 }
 
 void update_input() {
@@ -320,15 +330,9 @@ void update_input() {
 
 void boardInit() {
   for (byte i = 0; i <= 14; i++) {
-//    if (i == 0 || i == 1 ) {
-//      mode_action[i] = 'x';
-//      mode_val[i] = 0;
-//    }
-//    else {
-      mode_action[i] = 'o';
-      mode_val[i] = 0;
-      pinMode(i, OUTPUT);
-//    }
+    mode_action[i] = 'o';
+    mode_val[i] = 0;
+    pinMode(i, OUTPUT);
   }
 }
 
@@ -347,7 +351,14 @@ void printWiFiStatus() {
   Serial.print("signal strength (RSSI):");
   Serial.print(rssi);
   Serial.println(" dBm");
-  // print where to go in a browser:
-  Serial.print("To see this page in action, open a browser to http://");
-  Serial.println(ip);
+
+}
+
+void printWifiSerial() {
+  if (Serial) {
+    if (millis() - last_ip > 5000) {
+      printWiFiStatus();
+    }
+    last_ip = millis();
+  }
 }
