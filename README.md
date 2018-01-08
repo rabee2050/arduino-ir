@@ -25,7 +25,9 @@ Applications:
 - Remote control.
 
 Requirements:
-- Arduino MKR1000
+- Arduino MKR1000 Board
+- Arduino IDE
+- MKR1000 Kit App for iOS or Android.
 
 
 Check this youtube to see in real world:	
