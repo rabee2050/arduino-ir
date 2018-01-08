@@ -1,7 +1,7 @@
 # Arduino-MKR1000
 This sketch work with both apps on iOS and Android : "Arduino MKR1000"
 - iOS: 
-- Android: 
+- Android: https://play.google.com/store/apps/details?id=com.tatco.mkr1000
 
 Features:
 - Read & write digital pins
@@ -29,4 +29,4 @@ Requirements:
 
 
 Check this youtube to see in real world:	
-- http://
+- https://youtu.be/m672N657e_M
