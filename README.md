@@ -1,6 +1,6 @@
 # Arduino-MKR1000
 This sketch work with both apps on iOS and Android : "Arduino MKR1000"
-- iOS: Coming soon
+- iOS: https://itunes.apple.com/us/app/mkr1000-kit/id1330616500?ls=1&mt=8
 - Android: https://play.google.com/store/apps/details?id=com.tatco.mkr1000
 
 Features:
