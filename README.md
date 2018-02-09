@@ -1,37 +1,46 @@
-# Arduino-MKR1000
-This sketch work with both apps on iOS and Android : "Arduino MKR1000"
-- iOS: https://itunes.apple.com/us/app/mkr1000-kit/id1330616500?ls=1&mt=8
-- Android: https://play.google.com/store/apps/details?id=com.tatco.mkr1000
+# Arduino-IR
+This sketch work with both apps on iOS and Android : "Arduino IR"
+- iOS: comming soon
+- Android: comming soon
 
 Features:
+- Replace all you remote controls with your iPhone.
+- Create your own universal IR remote control with Arduino+Bluetooth shield or Module.
+- Send and receive infrared signals with any protocols.
+- Store your IR database in your phone.
+- Auto-connect to Arduino.
+- Sort and rename each IR button.
+- Change icon of each IR button.
+- Open source Arduino Code.
 
-- Read & write digital pins. 
-- Read & write PWM pins.
-- Control SERVO motors.
-- Read analog pins.
-- Charts: for monitoring sensors data.
-- LCD: you can send any data from Arduino to your mobile phone.
-- Terminal: you can send any data from mobile phone to your Arduino.
-- Super easy user interface.
-- Remember last status of the pins.
-- Change the mode of the pin (Output, PWM, SERVO or Input).
-- Automatic connect to Arduino.
-- Ability to rename the label of each pin.
-
-Applications:
-
-- Smart Home.
-- Automation.
-- Hoppy projects.
-- Schools & university projects.
-- Remote control.
-- Robots control.
+What devices can you control using this app? 
+- You can control any IR device in this world .....Yes Thats True!
 
 Requirements:
-- Arduino MKR1000 Board
-- Arduino IDE
-- MKR1000 Kit App for iOS or Android.
+- Arduino Board (UNO, MEGA, Leonardo, Nano, Pro).
+- Infrared LED.
+- Infrared Receiver.
+- Bluetooth BLE Module or Shield.
+- Arduino Sketch(URL provided inside the app).
+
+Instructions:
+- This is a DIY solution.
+- Upload Arduino Code to your Arduino Board.
+- Wire the bluetooth module as per the diagram in the app.
+- Connect your IR LED to Pin 3 for Uno,Leonardo.
+- Connect your IR LED to Pin 9 for Mega.
+- Connect your IR Receiver to Pin 11 for Uno,Leonardo, Mega, etc.
+- Open the app then connect to your Arduino using Bluetooth.
+- Enable IR Receiver from the app setting tab.
+- Bring any remote that you want to hack.
+- Start sending command to Arduino and see the magic!
+
+Tested on iOS with:
+- Bluetooth Module or shield (HM-10, TI, CC2541, Bluefruit LE UART or SPI, Feather 32u4 Bluefruit).
+- Arduino (Uno, Leo, Mega, Pro, Nano, Micro,Feather Bluefruit)
+- IR Transmitter (Any Kind will work).
+- IR Receiver ( VS1838b or any compatible IR Reciever).
 
 
 Check this youtube to see in real world:	
-- https://youtu.be/m672N657e_M
+- comming soon
