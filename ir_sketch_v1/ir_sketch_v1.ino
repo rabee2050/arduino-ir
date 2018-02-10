@@ -26,8 +26,8 @@
 #include <SoftwareSerial.h>
 #include <IRremote.h>
 
-#define arduino_rx_pin 6  //  ------->   Bluetooth_tx_pin
-#define arduino_tx_pin 7  //   ------->   Bluetooth_rx_pin
+#define arduino_rx_pin 6  //  arduino_rx_pin 6 ------->   Bluetooth_tx_pin
+#define arduino_tx_pin 7  //  arduino_tx_pin 7 ------->   Bluetooth_rx_pin
 
 String ir[3];
 int recvPin = 11;
@@ -170,4 +170,3 @@ void stringToIntArry(String irRawString) {
     }
   }
 }
-
