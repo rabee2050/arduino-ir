@@ -1,5 +1,5 @@
 /*
-  Title  : Arduino IR 
+  Title  : Arduino IR
   version: V1.
   Contact: info@tatco.cc
   Done By: TATCO Inc.
@@ -16,18 +16,19 @@
   Connection:
   arduino_rx_pin  ------->   Bluetooth_tx_pin
   arduino_tx_pin  ------->   Bluetooth_rx_pin
-
+  - If you are using Bluefruit module then make sure to connect CTS pin to ground.
+  
   IR Reciever     ------->   Pin 11
-  IR Transmitter  ------->   Pin 3
-
-  If you are using Bluefruit module then make sure to connect CTS pin to ground.
+  IR Transmitter  ------->   Pin 3  UNO Only
+  IR Transmitter  ------->   Pin 13  LEONARDO Only
+  IR Transmitter  ------->   Pin 9  MEGA Only
 
 */
 #include <SoftwareSerial.h>
 #include <IRremote.h>
 
-#define arduino_rx_pin 6  //  arduino_rx_pin 6 ------->   Bluetooth_tx_pin
-#define arduino_tx_pin 7  //  arduino_tx_pin 7 ------->   Bluetooth_rx_pin
+#define arduino_rx_pin 10  //  arduino_rx_pin 10 ------->   Bluetooth_tx_pin
+#define arduino_tx_pin 8  //  arduino_tx_pin 8 ------->   Bluetooth_rx_pin
 
 String ir[3];
 int recvPin = 11;
@@ -38,18 +39,14 @@ boolean repeat = false;
 
 SoftwareSerial mySerial(arduino_rx_pin, arduino_tx_pin); // RX, TX
 IRrecv irrecv(recvPin);//pin 11
-IRsend irsend;//pin 3
+IRsend irsend;//pin 3 on UNO,  Pin 13 on Leo, Pin 9 on Mega
 
 void setup(void)
 {
   Serial.begin(9600);
-  //  while (!Serial) {
-  //    ; // wait for serial port to connect. Needed for native USB port only
-  //  }
   irrecv.enableIRIn();
   Serial.println("Start");
-  mySerial.begin(9600);//you have to change this if you change bluetooth baudrate.
-
+  mySerial.begin(9600);//If you need to change this, then you have to change bluetooth module baudrate to the same.
 }
 
 void loop(void)
@@ -68,8 +65,10 @@ void loop(void)
   }
 
   if (repeat) {
-    sendCode(irBufType, irBuf , irBufLen);
-    delay(150);
+    digitalWrite(13, HIGH);
+    sendCode();
+//    delay(150);
+    
   }
 
 }
@@ -92,32 +91,35 @@ void process() {
 }
 
 void irCommand() {
+
   repeat = false;
   String codeType, codeValue, codeLen;
   codeType = mySerial.readStringUntil('/');
   codeValue = mySerial.readStringUntil('/');
   codeLen = mySerial.readStringUntil('\r');
+  irBufLen = codeLen.toInt();
+  irBufType = codeType.toInt();
   stringToIntArry(codeValue);
-  sendCode(codeType.toInt(), irBuf , codeLen.toInt());
-  delay(100);
-  //  Serial.println(F("Sent Raw "));
+  sendCode();
+    Serial.println(F("Sent Raw "));
 }
 
 void irCommandR() {
 
   String codeType, codeValue, codeLen;
   codeType = mySerial.readStringUntil('/');
-  codeValue = mySerial.readStringUntil('/');
-  codeLen = mySerial.readStringUntil('\r');
+
   if (codeType == "off") {
     repeat = false;
   } else {
+      codeValue = mySerial.readStringUntil('/');
+  codeLen = mySerial.readStringUntil('\r');
     stringToIntArry(codeValue);
     irBufLen = codeLen.toInt();
     irBufType = codeType.toInt();
     repeat = true;
   }
-  //  Serial.println(F("Sent Raw "));
+    Serial.println(F("Sent Repeat Raw "));
 }
 
 void allstatus() {
@@ -147,12 +149,12 @@ void  dumpCode (decode_results *results)
 
   data_status += F("\"]}");
   mySerial.println(data_status);
-  Serial.println(F("Dumped Raw"));
+  Serial.println(F("Got IR Code"));
 }
 
-void sendCode(int codeType, unsigned long codeValue, int codeLen ) {
+void sendCode() {
 
-  irsend.sendRaw(irBuf, codeLen, 38);
+  irsend.sendRaw(irBuf,irBufLen, 38);
   delay(50);
   irrecv.enableIRIn();
 }
