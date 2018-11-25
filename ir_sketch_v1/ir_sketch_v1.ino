@@ -65,10 +65,7 @@ void loop(void)
   }
 
   if (repeat) {
-    digitalWrite(13, HIGH);
     sendCode();
-//    delay(150);
-    
   }
 
 }
