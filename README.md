@@ -1,7 +1,7 @@
 # Arduino-IR
 This sketch work with both apps on iOS and Android : "Arduino IR"
 - iOS: comming soon
-- Android: comming soon
+- Android: https://play.google.com/store/apps/details?id=com.tatco.ir
 
 Features:
 - Replace all you remote controls with your iPhone.
@@ -43,4 +43,4 @@ Tested on iOS with:
 
 
 Check this youtube to see in real world:	
-- comming soon
+- https://youtu.be/aB93BjbrVEE
