@@ -1,6 +1,6 @@
 # Arduino-IR
 This sketch work with both apps on iOS and Android : "Arduino IR"
-- iOS: comming soon
+- iOS: https://itunes.apple.com/us/app/arduino-ir-kit/id1332867848
 - Android: https://play.google.com/store/apps/details?id=com.tatco.ir
 
 Features:
